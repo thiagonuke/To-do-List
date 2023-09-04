@@ -3,7 +3,7 @@
 🔷 Aplicação de Cadastro de Pendências
 - Esta é uma aplicação simples para o cadastro e gerenciamento de pendências. Os usuários podem criar pendências, atribuir um status (em andamento, finalizada ou atrasada) a cada uma delas e visualizar uma lista de suas pendências cadastradas.
 
-🔘Funcionalidades Principais
+🔷 Funcionalidades Principais
 + Cadastro de Pendências: Os usuários podem criar novas pendências especificando um título e uma descrição para cada uma.
 
 + Gerenciamento de Status: Cada pendência pode ser marcada como "Em Andamento," "Finalizada," ou "Atrasada," permitindo que os usuários acompanhem o progresso de suas pendências.
