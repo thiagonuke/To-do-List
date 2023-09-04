@@ -1,0 +1,218 @@
+﻿@model List<Gobi.Test.Jr.Domain.TodoItem>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+
+<div class="container">
+
+    <div class="mt-5 mb-5">
+
+        @* <a asp-action="Add" asp-controller="Home" class="btn btn-primary">
+            Add ToDo
+        </a> *@
+        <button id="openPopupButton" class="btn btn-primary">
+            Add ToDo
+        </button>
+    </div>
+
+    <table class="table table-hover table-striped">
+        <thead class="thead">
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Tarefa</th>
+                <th scope="col">Opções</th>
+                <th scope="col">Finalizado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Description</td>
+                    <td style="width: 25%;">
+                        <a onclick="edit('@item.Id')" class="btn btn-outline-warning pointer text-warning" title="Editar">Editar</a>
+                        <a onclick="excluir('@item.Id')" class="btn btn-outline-danger pointer text-danger" title="Excluir">Excluir</a>
+                    </td>
+                    @if(item.Completed == 0)
+                    {
+                        <td class="text-warning font-weight-bold">@item.status</td>
+                    }@if(item.Completed == 1)
+                    {
+                        <td class="text-success font-weight-bold">@item.status</td>
+                    }@if(item.Completed == 2)
+                    {
+                        <td class="text-danger font-weight-bold">@item.status</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="popup-container" id="popupContainer">
+        <div class="popup d-flex flex-column justify-content-center align-items-center">
+            <h4 class="close-button" style="color:red;" id="closePopupButton">X</h4>
+            <h2>Cadastro de tarefas:</h2>
+            <form class="d-flex flex-column justify-content-around w-50">
+                <input type="text" class="form-control" style="display:none;" id="Idtarefa" name="tarefa"><br><br>
+                <label for="tarefa">Tarefa:</label>
+                <input type="text" class="form-control" id="tarefa" name="tarefa"><br><br>
+                <select class="form-control" id="statusTarefa">
+                    <option value="">Selecione</option>
+                    <option value="0">Em andamento</option>
+                    <option value="1">Finalizado</option>
+                    <option value="2">Atrasado</option>
+                </select><br><br>
+                <button type="button" id="insertTarefa" class="btn btn-success">Cadastrar</button>
+                <button type="button" id="Editbutton" class="btn btn-primary">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+    const openPopupButton = document.getElementById('openPopupButton');
+    const closePopupButton = document.getElementById('closePopupButton');
+    const popupContainer = document.getElementById('popupContainer');
+    const Cadastro = document.getElementById('insertTarefa');
+    const EditT = document.getElementById('Editbutton');
+
+    $("#insertTarefa").click(function () {
+        if (validacampos()){
+            var dados = {
+                Description: $("#tarefa").val(),
+                Completed: $("#statusTarefa").val()
+            }
+
+            $.ajax({
+                url: '../Todo/Add',
+                type: "POST",
+                data: {dados},
+                success: function (data){
+                    if(data == true){
+                        toastr.success("Inserido com sucesso!")
+                        popupContainer.style.display = 'none';
+
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000);
+                    }else{
+                        toastr.error("Erro ao inserir!")
+                    }
+                }
+
+            })
+
+        }
+    })
+
+    function validacampos() {
+        var validado = false;
+
+        if($("#tarefa").val() == ""){
+            toastr.error("Preencha a tarefa!")
+            return validado;
+        }
+        if ($("#statusTarefa").val() == "") {
+            toastr.error("Preencha o Status!")
+            return validado;
+        }
+
+        validado = true;
+        return validado;
+    }
+
+    function edit(dados) { 
+
+        var tarefaId = parseInt(dados);
+
+        $.ajax({
+            url: '../Todo/Details',
+            type: 'GET',
+            data: { tarefaId },
+            success: function (data) { 
+                popupContainer.style.display = 'flex';
+                $("#tarefa").val(data.description);
+                $("#statusTarefa").val(data.completed);
+                $("#Idtarefa").val(data.id);
+                Cadastro.style.display = 'none';
+                EditT.style.display = 'block';
+            }
+        })
+            
+    }
+
+    function excluir(dados){
+        var tarefaId = parseInt(dados);
+
+        $.ajax({
+            url: '../Todo/Delete',
+            type: 'POST',
+            data: { tarefaId },
+            success: function (data) {
+                toastr.success("Excluido com sucesso!")
+
+                setTimeout(function () {
+                    location.reload();
+                }, 2000);
+            }
+        })
+    }
+
+    $("#Editbutton").click(function () {
+        if (validacampos()) {
+            var dados = {
+                Id: $("#Idtarefa").val(),
+                Description: $("#tarefa").val(),
+                Completed: $("#statusTarefa").val()
+            }
+
+
+            $.ajax({
+                url: '../Todo/Edit',
+                type: 'POST',
+                data: { dados },
+                success: function (data) {
+                    if(data == true){
+                        toastr.success("Atualizado com sucesso!")
+                        popupContainer.style.display = 'none';
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000);
+                    }else{
+                        toastr.error("Erro ao atualizar!")
+                    }
+                }
+            })
+
+        }
+    })
+
+    openPopupButton.addEventListener('click', () => {
+        $("#tarefa").val("");
+        $("#statusTarefa").val("");
+        popupContainer.style.display = 'flex';
+    });
+
+
+    closePopupButton.addEventListener('click', () => {
+        popupContainer.style.display = 'none';
+    });
+
+    popupContainer.addEventListener('click', (event) => {
+        if (event.target === popupContainer) {
+            popupContainer.style.display = 'none';
+        }
+    });
+</script>
